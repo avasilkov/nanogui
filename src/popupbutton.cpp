@@ -51,8 +51,14 @@ void PopupButton::draw(NVGcontext* ctx) {
         nvgTextAlign(ctx, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
 
         float iw = nvgTextBounds(ctx, 0, 0, icon.data(), nullptr, nullptr);
-        Vector2f iconPos(mPos.x() + mSize.x() - iw - 8,
-                         mPos.y() + mSize.y() * 0.5f - 1);
+        Vector2f iconPos;
+        if(mPopup->popupSide() == PopupSide::RIGHTSIDE){
+            iconPos = Vector2f(mPos.x() + mSize.x() - iw - 8,
+                               mPos.y() + mSize.y() * 0.5f - 1);
+        }else{
+            iconPos = Vector2f(mPos.x() + 8,
+                               mPos.y() + mSize.y() * 0.5f - 1);
+        }
 
         nvgText(ctx, iconPos.x(), iconPos.y(), icon.data(), nullptr);
     }
@@ -63,8 +69,22 @@ void PopupButton::performLayout(NVGcontext *ctx) {
 
     const Window *parentWindow = window();
 
-    mPopup->setAnchorPos(Vector2i(parentWindow->width() + 15,
-        absolutePosition().y() - parentWindow->position().y() + mSize.y() /2));
+    if(mPopup->popupSide() == PopupSide::RIGHTSIDE){
+        mPopup->setAnchorPos(Vector2i(parentWindow->width() + 15,
+                                      absolutePosition().y() - parentWindow->position().y() + mSize.y() /2));
+    }else{
+        mPopup->setAnchorPos(Vector2i(0 - 15,
+                                      absolutePosition().y() - parentWindow->position().y() + mSize.y() /2));
+    }
+}
+
+void PopupButton::setPopupSide(PopupSide popupSide) {
+    if(mPopup->popupSide() == PopupSide::RIGHTSIDE && mChevronIcon == ENTYPO_ICON_CHEVRON_SMALL_RIGHT){
+        setChevronIcon(ENTYPO_ICON_CHEVRON_SMALL_LEFT);
+    }else if(mPopup->popupSide() == PopupSide::LEFTSIDE && mChevronIcon == ENTYPO_ICON_CHEVRON_SMALL_LEFT){
+        setChevronIcon(ENTYPO_ICON_CHEVRON_SMALL_RIGHT);
+    }
+    mPopup->setPopupSide(popupSide);
 }
 
 void PopupButton::save(Serializer &s) const {
