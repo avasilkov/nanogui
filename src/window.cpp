@@ -19,7 +19,7 @@
 NAMESPACE_BEGIN(nanogui)
 
 Window::Window(Widget *parent, const std::string &title)
-    : Widget(parent), mTitle(title), mButtonPanel(nullptr), mModal(false), mDrag(false) { }
+    : Widget(parent), mTitle(title), mButtonPanel(nullptr), mModal(false), mDrag(false), mMinimized(false) { }
 
 Vector2i Window::preferredSize(NVGcontext *ctx) const {
     if (mButtonPanel)
@@ -60,6 +60,9 @@ void Window::performLayout(NVGcontext *ctx) {
         mButtonPanel->setSize(Vector2i(width(), 22));
         mButtonPanel->setPosition(Vector2i(width() - (mButtonPanel->preferredSize(ctx).x() + 5), 3));
         mButtonPanel->performLayout(ctx);
+    }
+    if(!mMinimized){
+        mNotMinimizedSize = mSize;
     }
 }
 
@@ -150,6 +153,55 @@ void Window::center() {
     while (widget->parent())
         widget = widget->parent();
     ((Screen *) widget)->centerWindow(this);
+}
+
+void Window::setMinimized(bool minimized){
+    if(minimized == mMinimized) return;
+    if(minimized){
+        mNotMinimizedSize = mSize;
+        if(!mTitle.empty() || mButtonPanel){
+            mSize = Vector2i(mSize[0], mTheme->mWindowHeaderHeight);
+        }else{
+            mSize = Vector2i(mSize[0], 0);
+        }
+        saveChildrenVisibleStates();
+        hideAllChildren();
+    }else{
+        mSize = mNotMinimizedSize;
+        restoreChildrenVisibleStates();
+        mChildrenVisibleStates.clear();
+    }
+    mMinimized = minimized;
+}
+
+void Window::hideAllChildren(bool hideButtonPanel){
+    bool buttonPanelVisibility;
+    if(mButtonPanel && !hideButtonPanel){
+        buttonPanelVisibility = mButtonPanel->visible();
+    }
+    for (auto c : mChildren){
+        c->setVisible(false);
+    }
+    if(mButtonPanel && !hideButtonPanel){
+        mButtonPanel->setVisible(buttonPanelVisibility);
+    }
+}
+
+void Window::saveChildrenVisibleStates(){
+    mChildrenVisibleStates.clear();
+    mChildrenVisibleStates.reserve(mChildren.size());
+    for (auto c : mChildren){
+        mChildrenVisibleStates[c] = c->visible();
+    }
+}
+
+void Window::restoreChildrenVisibleStates() {
+    for (auto c : mChildren){
+        auto it = mChildrenVisibleStates.find(c);
+        if(it != mChildrenVisibleStates.end() && !c->visible()){
+            c->setVisible(it->second);
+        }
+    }
 }
 
 bool Window::mouseDragEvent(const Vector2i &, const Vector2i &rel,
