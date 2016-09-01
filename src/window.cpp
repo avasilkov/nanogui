@@ -19,7 +19,7 @@
 NAMESPACE_BEGIN(nanogui)
 
 Window::Window(Widget *parent, const std::string &title)
-    : Widget(parent), mTitle(title), mButtonPanel(nullptr), mModal(false), mDrag(false), mMinimized(false) { }
+    : Widget(parent), mTitle(title), mButtonPanel(nullptr), mModal(false), mDrag(false), drawShadow(true), mMinimized(false) { }
 
 Vector2i Window::preferredSize(NVGcontext *ctx) const {
     if (mButtonPanel)
@@ -76,17 +76,19 @@ void Window::draw(NVGcontext *ctx) {
                                   : mTheme->mWindowFillUnfocused);
     nvgFill(ctx);
 
-    /* Draw a drop shadow */
-    NVGpaint shadowPaint = nvgBoxGradient(
-        ctx, mPos.x(), mPos.y(), mSize.x(), mSize.y(), cr*2, ds*2,
-        mTheme->mDropShadow, mTheme->mTransparent);
+    if(drawShadow){
+        /* Draw a drop shadow */
+        NVGpaint shadowPaint = nvgBoxGradient(
+            ctx, mPos.x(), mPos.y(), mSize.x(), mSize.y(), cr*2, ds*2,
+            mTheme->mDropShadow, mTheme->mTransparent);
 
-    nvgBeginPath(ctx);
-    nvgRect(ctx, mPos.x()-ds,mPos.y()-ds, mSize.x()+2*ds, mSize.y()+2*ds);
-    nvgRoundedRect(ctx, mPos.x(), mPos.y(), mSize.x(), mSize.y(), cr);
-    nvgPathWinding(ctx, NVG_HOLE);
-    nvgFillPaint(ctx, shadowPaint);
-    nvgFill(ctx);
+        nvgBeginPath(ctx);
+        nvgRect(ctx, mPos.x()-ds,mPos.y()-ds, mSize.x()+2*ds, mSize.y()+2*ds);
+        nvgRoundedRect(ctx, mPos.x(), mPos.y(), mSize.x(), mSize.y(), cr);
+        nvgPathWinding(ctx, NVG_HOLE);
+        nvgFillPaint(ctx, shadowPaint);
+        nvgFill(ctx);
+    }
 
     if (!mTitle.empty()) {
         /* Draw header */

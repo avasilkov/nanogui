@@ -24,7 +24,7 @@ NAMESPACE_BEGIN(nanogui)
 class NANOGUI_EXPORT Label : public Widget {
 public:
     Label(Widget *parent, const std::string &caption,
-          const std::string &font = "sans", int fontSize = -1);
+        const std::string &font = "sans", int fontSize = -1, int _fixedSizeTextAlignment=-1);
 
     /// Get the label's text caption
     const std::string &caption() const { return mCaption; }
@@ -55,6 +55,7 @@ public:
 protected:
     std::string mCaption;
     std::string mFont;
+    int fixedSizeTextAlignment;
     Color mColor;
 };
 

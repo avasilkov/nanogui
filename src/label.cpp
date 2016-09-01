@@ -16,13 +16,18 @@
 
 NAMESPACE_BEGIN(nanogui)
 
-Label::Label(Widget *parent, const std::string &caption, const std::string &font, int fontSize)
+Label::Label(Widget *parent, const std::string &caption, const std::string &font, int fontSize, int _fixedSizeTextAlignment)
     : Widget(parent), mCaption(caption), mFont(font) {
     if (mTheme) {
         mFontSize = mTheme->mStandardFontSize;
         mColor = mTheme->mTextColor;
     }
     if (fontSize >= 0) mFontSize = fontSize;
+    if(_fixedSizeTextAlignment == -1){
+        fixedSizeTextAlignment = NVG_ALIGN_LEFT|NVG_ALIGN_TOP;
+    }else{
+        fixedSizeTextAlignment = _fixedSizeTextAlignment;
+    }
 }
 
 void Label::setTheme(Theme *theme) {
@@ -40,12 +45,14 @@ Vector2i Label::preferredSize(NVGcontext *ctx) const {
     nvgFontSize(ctx, fontSize());
     if (mFixedSize.x() > 0) {
         float bounds[4];
-        nvgTextAlign(ctx, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+        //nvgTextAlign(ctx, alignText & NVG_ALIGN_BASELINE?NVG_ALIGN_LEFT | NVG_ALIGN_TOP:alignText);
+        nvgTextAlign(ctx, fixedSizeTextAlignment);
         nvgTextBoxBounds(ctx, mPos.x(), mPos.y(), mFixedSize.x(), mCaption.c_str(), nullptr, bounds);
         return Vector2i(
             mFixedSize.x(), (bounds[3]-bounds[1])
         );
     } else {
+        //nvgTextAlign(ctx, alignText & NVG_ALIGN_BASELINE?NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE:alignText);
         nvgTextAlign(ctx, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
         return Vector2i(
             nvgTextBounds(ctx, 0, 0, mCaption.c_str(), nullptr, nullptr),
@@ -60,9 +67,11 @@ void Label::draw(NVGcontext *ctx) {
     nvgFontSize(ctx, fontSize());
     nvgFillColor(ctx, mColor);
     if (mFixedSize.x() > 0) {
-        nvgTextAlign(ctx, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+        //nvgTextAlign(ctx, alignText & NVG_ALIGN_BASELINE?NVG_ALIGN_LEFT | NVG_ALIGN_TOP:alignText);
+        nvgTextAlign(ctx, fixedSizeTextAlignment);
         nvgTextBox(ctx, mPos.x(), mPos.y(), mFixedSize.x(), mCaption.c_str(), nullptr);
     } else {
+        //nvgTextAlign(ctx, alignText & NVG_ALIGN_BASELINE?NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE:alignText);
         nvgTextAlign(ctx, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
         nvgText(ctx, mPos.x(), mPos.y() + mSize.y() * 0.5f, mCaption.c_str(), nullptr);
     }
@@ -73,6 +82,7 @@ void Label::save(Serializer &s) const {
     s.set("caption", mCaption);
     s.set("font", mFont);
     s.set("color", mColor);
+    s.set("fixedSizeTextAlignment", fixedSizeTextAlignment);
 }
 
 bool Label::load(Serializer &s) {
@@ -80,6 +90,7 @@ bool Label::load(Serializer &s) {
     if (!s.get("caption", mCaption)) return false;
     if (!s.get("font", mFont)) return false;
     if (!s.get("color", mColor)) return false;
+    if (!s.get("fixedSizeTextAlignment", fixedSizeTextAlignment)) return false;
     return true;
 }
 

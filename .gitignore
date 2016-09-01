@@ -1,3 +1,4 @@
+*kdev4*
 ext/pybind11*.a
 *.exe
 *.lib

@@ -42,7 +42,7 @@ public:
     Widget *buttonPanel();
 
     /// Dispose the window
-    void dispose();
+    virtual void dispose();
 
     /// Center the window in the current \ref Screen
     void center();
@@ -78,6 +78,7 @@ protected:
     bool mDrag;
     bool mMinimized;
     Vector2i mNotMinimizedSize;
+    bool drawShadow;
     std::unordered_map<Widget *, bool> mChildrenVisibleStates;
 };
 
